@@ -129,7 +129,7 @@ footer{padding:30px 0 40px;color:var(--muted);font-size:14px}
     <a id="peta" class="btn" target="_blank" rel="noopener">Lihat lokasi di Google Maps</a></p>
   </div>
 </main>
-<footer class="wrap">© Yayasan Pendidikan Islam Sirojul Ulum, Madrasah Mambaul Ulum. Semua hak dilindungi.</footer>
+<footer class="wrap">© Yayasan Pendidikan Islam Sirojul Ulum, Madrasah Mambaul Ulum. Semua hak dilindungi. <a href="admin.html" style="color:inherit;opacity:.7;margin-left:8px">Admin</a></footer>
 
 <script src="config.js"></script>
 <script src="defaults.js"></script>
@@ -157,9 +157,10 @@ function tampil(j){
   el("struktur").innerHTML=STRUKTUR.map(function(x){return '<div class="card"><h3>'+esc(x[0])+'</h3><p>'+esc(x[1])+'</p></div>'}).join("");
   el("layanan").innerHTML='<a class="card" href="https://wa.me/'+KONTAK.wa+'?text='+encodeURIComponent("Halo, saya ingin mendaftar di "+d.judul)+'" target="_blank" rel="noopener"><h3>Pendaftaran online</h3><p>Daftar lewat WhatsApp admin.</p></a>'+
     ["E-learning","Kelulusan dan SKL online","Portal alumni"].map(function(x){return '<div class="card off"><h3>'+x+'</h3><p>Segera hadir.</p></div>'}).join("");
-  el("foto-hero").src=S.HERO;el("logo-img").src=S.LOGO;
-  el("gal").innerHTML=GALERI.map(function(x,i){return '<figure data-i="'+i+'"><img loading="lazy" alt="'+esc(x[0])+'" src="'+esc(x[1])+'"><figcaption>'+esc(x[0])+'</figcaption></figure>'}).join("");
-  el("gal").querySelectorAll("figure").forEach(function(f){f.onclick=function(){var o=document.createElement("div");o.className="lb";o.setAttribute("data-adm","1");o.innerHTML='<img alt="">';o.firstChild.src=GALERI[f.dataset.i][1];o.onclick=function(){o.remove()};document.body.appendChild(o)}});
+  el("foto-hero").src=S.HERO[j];el("logo-img").src=S.LOGO;
+  el("sec-galeri").style.display=GALERI[j].length?"":"none";
+  el("gal").innerHTML=GALERI[j].map(function(x,i){return '<figure data-i="'+i+'"><img loading="lazy" alt="'+esc(x[0])+'" src="'+esc(x[1])+'"><figcaption>'+esc(x[0])+'</figcaption></figure>'}).join("");
+  el("gal").querySelectorAll("figure").forEach(function(f){f.onclick=function(){var o=document.createElement("div");o.className="lb";o.setAttribute("data-adm","1");o.innerHTML='<img alt="">';o.firstChild.src=GALERI[j][f.dataset.i][1];o.onclick=function(){o.remove()};document.body.appendChild(o)}});
   el("peta").href="https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(KONTAK.alamat);
   ["ra","mi"].forEach(function(k){el("t-"+k).setAttribute("aria-selected",k===j)});
   try{history.replaceState(null,"","#"+j)}catch(e){}

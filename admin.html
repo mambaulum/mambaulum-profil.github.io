@@ -54,26 +54,28 @@ function adGroup(box,title,obj,prefix){
 var G,H;
 function adPack(file,maxw){return new Promise(function(ok,no){var im=new Image(),u=URL.createObjectURL(file);im.onload=function(){var r=Math.min(1,maxw/im.width),c=document.createElement("canvas");c.width=Math.round(im.width*r);c.height=Math.round(im.height*r);c.getContext("2d").drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(u);ok(c.toDataURL("image/jpeg",0.72))};im.onerror=no;im.src=u})}
 function adPhotos(box){
-  G=S.GALERI.map(function(x){return [x[0],x[1]]});H=S.HERO;
-  var d=document.createElement("details"),sm=document.createElement("summary");sm.textContent="Foto (sampul dan galeri)";d.appendChild(sm);
-  var l=document.createElement("label");l.textContent="Foto sampul (gedung)";d.appendChild(l);
-  var hp=document.createElement("img");hp.src=H;hp.style.cssText="width:140px;border-radius:8px;display:block;margin:6px 0";d.appendChild(hp);
-  var hf=document.createElement("input");hf.type="file";hf.accept="image/*";hf.onchange=async function(){if(hf.files[0]){H=await adPack(hf.files[0],1500);hp.src=H}};d.appendChild(hf);
-  var l2=document.createElement("label");l2.textContent="Galeri kegiatan";d.appendChild(l2);
-  var list=document.createElement("div");d.appendChild(list);
-  function draw(){list.innerHTML="";G.forEach(function(g,i){
-    var r=document.createElement("div");r.className="adm-th";
-    var im=document.createElement("img");im.src=g[1];
-    var t=document.createElement("textarea");t.rows=2;t.value=g[0];t.oninput=function(){g[0]=t.value};
-    var x=document.createElement("button");x.type="button";x.textContent="Hapus";x.onclick=function(){G.splice(i,1);draw()};
-    r.appendChild(im);r.appendChild(t);r.appendChild(x);list.appendChild(r)})}
-  draw();
-  var af=document.createElement("input");af.type="file";af.accept="image/*";af.multiple=true;
-  af.onchange=async function(){for(var i=0;i<af.files.length;i++){try{G.push(["Foto kegiatan",await adPack(af.files[i],1100)])}catch(e){}}af.value="";draw()};
-  var al=document.createElement("label");al.textContent="Tambah foto (bisa pilih beberapa)";d.appendChild(al);d.appendChild(af);
-  box.appendChild(d);
+  function cp(l){return l.map(function(x){return [x[0],x[1]]})}
+  G={ra:cp(S.GALERI.ra),mi:cp(S.GALERI.mi)};H={ra:S.HERO.ra,mi:S.HERO.mi};
+  [["ra","RA Mambaul Ulum"],["mi","MI Mambaul Ulum"]].forEach(function(J){
+    var j=J[0],d=document.createElement("details"),sm=document.createElement("summary");sm.textContent="Foto "+J[1];d.appendChild(sm);
+    var l=document.createElement("label");l.textContent="Foto sampul";d.appendChild(l);
+    var hp=document.createElement("img");hp.src=H[j];hp.style.cssText="width:140px;border-radius:8px;display:block;margin:6px 0";d.appendChild(hp);
+    var hf=document.createElement("input");hf.type="file";hf.accept="image/*";hf.onchange=async function(){if(hf.files[0]){H[j]=await adPack(hf.files[0],1500);hp.src=H[j]}};d.appendChild(hf);
+    var l2=document.createElement("label");l2.textContent="Galeri kegiatan";d.appendChild(l2);
+    var list=document.createElement("div");d.appendChild(list);
+    function draw(){list.innerHTML="";G[j].forEach(function(g,i){
+      var r=document.createElement("div");r.className="adm-th";
+      var im=document.createElement("img");im.src=g[1];
+      var t=document.createElement("textarea");t.rows=2;t.value=g[0];t.oninput=function(){g[0]=t.value};
+      var b=document.createElement("button");b.type="button";b.textContent="Hapus";b.onclick=function(){G[j].splice(i,1);draw()};
+      r.appendChild(im);r.appendChild(t);r.appendChild(b);list.appendChild(r)})}
+    draw();
+    var al=document.createElement("label");al.textContent="Tambah foto (bisa pilih beberapa)";d.appendChild(al);
+    var af=document.createElement("input");af.type="file";af.accept="image/*";af.multiple=true;
+    af.onchange=async function(){for(var i=0;i<af.files.length;i++){try{G[j].push(["Foto kegiatan",await adPack(af.files[i],1100)])}catch(e){}}af.value="";draw()};
+    d.appendChild(af);box.appendChild(d);
+  });
 }
-
 function showLogin(){
   var v=$("v");
   if(!ready()){v.innerHTML='<p class="err">Isi dulu apiKey dan databaseURL di file config.js (lihat PANDUAN.md).</p>';return}
