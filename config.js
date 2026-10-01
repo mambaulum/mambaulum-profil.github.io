@@ -1,5 +1,5 @@
 // Isi dari Firebase Console > Project settings > Your apps (Web app)
 window.CFG={
-  apiKey:"ISI_API_KEY",
-  databaseURL:"https://ISI-NAMA-PROYEK-default-rtdb.firebaseio.com"
+  apiKey:"AIzaSyBHNnJmb-AkeBzGTtTjCpMjEvKecn2zIT0",
+  databaseURL:"https://profilmambaululum-default-rtdb.asia-southeast1.firebasedatabase.app"
 };
