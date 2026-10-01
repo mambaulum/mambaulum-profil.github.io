@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex"><title>Admin Profil Madrasah</title>
+<style>
+:root{--bg:#f3f8f4;--surface:#fff;--ink:#16302a;--muted:#4f6a62;--main:#14664f;--accent:#f2b705;--soft:#dcefe4;--r:18px}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.6 system-ui,sans-serif;padding:16px}
+.adm-box{margin:0 auto;max-height:none;overflow:visible}
+.adm-box input[type=email],.adm-box input[type=password]{width:100%;font:inherit;padding:10px;border-radius:10px;border:1px solid var(--muted)}
+.adm-box button{border:0;border-radius:999px;padding:10px 22px;font:700 15px system-ui,sans-serif;cursor:pointer;background:var(--soft);color:var(--ink)}
+.adm-box .ok{background:var(--main);color:#fff}
+.err{color:#b3261e;font-weight:700}
+.adm-box{background:var(--surface);color:var(--ink);border-radius:var(--r);width:min(720px,100%);max-height:92vh;overflow:auto;padding:20px}
+.adm-box details{border:1px solid var(--soft);border-radius:12px;padding:10px 14px;margin:10px 0}
+.adm-box summary{font-weight:700;cursor:pointer}
+.adm-box label{display:block;font-weight:700;font-size:14px;margin:12px 0 4px}
+.adm-box textarea{width:100%;font:inherit;font-size:15px;padding:8px;border-radius:10px;border:1px solid var(--muted);background:var(--bg);color:var(--ink)}
+.adm-bar{position:sticky;bottom:-20px;background:var(--surface);padding:12px 0 0;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.adm-bar button{border:0;border-radius:999px;padding:10px 22px;font:700 15px "Nunito Sans",sans-serif;cursor:pointer;background:var(--soft);color:var(--ink)}
+.adm-bar .ok{background:var(--main);color:#fff}
+.gal{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.gal figure{margin:0;border-radius:var(--r);overflow:hidden;background:var(--surface);cursor:zoom-in}
+.gal img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block}
+.gal figcaption{padding:10px 14px;font-weight:700;font-size:15px}
+.hero-row{display:grid;grid-template-columns:1.1fr .9fr;gap:28px;align-items:center;position:relative;z-index:1}
+#foto-hero{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:var(--r);border:6px solid #fff;box-shadow:0 14px 34px rgba(0,0,0,.3)}
+.logo img{width:100%;height:100%;object-fit:cover;border-radius:12px}
+.lb{position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.85);display:grid;place-items:center;padding:16px;cursor:zoom-out}
+.lb img{max-width:100%;max-height:92vh;border-radius:12px}
+.adm-th{display:flex;gap:10px;align-items:center;margin:8px 0}.adm-th img{width:72px;height:54px;object-fit:cover;border-radius:8px}.adm-th textarea{flex:1}
+</style></head><body>
+<div class="adm-box" id="box"><h2>Admin profil madrasah</h2><div id="v"></div></div>
+<script src="config.js"></script><script src="defaults.js"></script>
+<script>
+var S=JSON.parse(JSON.stringify(DEFAULTS)),CFG=window.CFG||{},tok=null,rt=null,exp=0;
+function $(i){return document.getElementById(i)}
+function ready(){return CFG.apiKey&&CFG.databaseURL&&CFG.apiKey.indexOf("ISI")<0&&CFG.databaseURL.indexOf("ISI")<0}
+function setTok(j){tok=j.idToken||j.id_token;rt=j.refreshToken||j.refresh_token;exp=Date.now()+(+(j.expiresIn||j.expires_in)-60)*1000}
+async function login(e,p){var r=await fetch("https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key="+CFG.apiKey,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:e,password:p,returnSecureToken:true})});var j=await r.json();if(!r.ok)throw new Error("Email atau kata sandi salah");setTok(j)}
+async function fresh(){if(Date.now()<exp)return tok;var r=await fetch("https://securetoken.googleapis.com/v1/token?key="+CFG.apiKey,{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:"grant_type=refresh_token&refresh_token="+encodeURIComponent(rt)});var j=await r.json();if(!r.ok)throw new Error("Sesi habis, muat ulang dan masuk lagi");setTok(j);return tok}
+var LBL={judul:"Nama jenjang",tagline:"Kalimat pembuka",stats:"Angka ringkas (judul | keterangan)",tentang:"Tentang kami",visi:"Visi",misi:"Misi (satu per baris)",program:"Program unggulan (judul | uraian)",hari:"Jadwal harian (jam | kegiatan)",fasilitas:"Fasilitas (satu per baris)",daftar:"Teks pendaftaran",sambutan:"Sambutan kepala madrasah",kepala:"Nama kepala madrasah",sejarah:"Sejarah singkat",ekskul:"Ekstrakurikuler (satu per baris)",prestasi:"Prestasi (satu per baris)",info:"Pengumuman (satu per baris, baris pertama tampil di bar atas)",agenda:"Agenda (satu per baris)",alamat:"Alamat",wa:"Nomor WhatsApp untuk tautan (contoh 6281234567890)",wat:"Nomor WhatsApp yang ditampilkan",STRUKTUR:"Struktur dan guru (jabatan | nama)",GALERI:"Judul foto galeri (satu per baris)"};
+function adField(box,path,label,v){
+  var t=Array.isArray(v)?(Array.isArray(v[0])?"p":"l"):"s";
+  var l=document.createElement("label");l.textContent=label;
+  var x=document.createElement("textarea");x.dataset.path=path;x.dataset.t=t;
+  x.value=t==="s"?v:t==="l"?v.join("\n"):v.map(function(r){return r.join(" | ")}).join("\n");
+  x.rows=t==="s"?(String(v).length>90?4:1):Math.min(8,v.length+1);
+  box.appendChild(l);box.appendChild(x);
+}
+function adGroup(box,title,obj,prefix){
+  var d=document.createElement("details");var sm=document.createElement("summary");sm.textContent=title;d.appendChild(sm);
+  Object.keys(obj).forEach(function(k){adField(d,prefix+"."+k,LBL[k]||k,obj[k])});box.appendChild(d);
+}
+
+var G,H;
+function adPack(file,maxw){return new Promise(function(ok,no){var im=new Image(),u=URL.createObjectURL(file);im.onload=function(){var r=Math.min(1,maxw/im.width),c=document.createElement("canvas");c.width=Math.round(im.width*r);c.height=Math.round(im.height*r);c.getContext("2d").drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(u);ok(c.toDataURL("image/jpeg",0.72))};im.onerror=no;im.src=u})}
+function adPhotos(box){
+  G=S.GALERI.map(function(x){return [x[0],x[1]]});H=S.HERO;
+  var d=document.createElement("details"),sm=document.createElement("summary");sm.textContent="Foto (sampul dan galeri)";d.appendChild(sm);
+  var l=document.createElement("label");l.textContent="Foto sampul (gedung)";d.appendChild(l);
+  var hp=document.createElement("img");hp.src=H;hp.style.cssText="width:140px;border-radius:8px;display:block;margin:6px 0";d.appendChild(hp);
+  var hf=document.createElement("input");hf.type="file";hf.accept="image/*";hf.onchange=async function(){if(hf.files[0]){H=await adPack(hf.files[0],1500);hp.src=H}};d.appendChild(hf);
+  var l2=document.createElement("label");l2.textContent="Galeri kegiatan";d.appendChild(l2);
+  var list=document.createElement("div");d.appendChild(list);
+  function draw(){list.innerHTML="";G.forEach(function(g,i){
+    var r=document.createElement("div");r.className="adm-th";
+    var im=document.createElement("img");im.src=g[1];
+    var t=document.createElement("textarea");t.rows=2;t.value=g[0];t.oninput=function(){g[0]=t.value};
+    var x=document.createElement("button");x.type="button";x.textContent="Hapus";x.onclick=function(){G.splice(i,1);draw()};
+    r.appendChild(im);r.appendChild(t);r.appendChild(x);list.appendChild(r)})}
+  draw();
+  var af=document.createElement("input");af.type="file";af.accept="image/*";af.multiple=true;
+  af.onchange=async function(){for(var i=0;i<af.files.length;i++){try{G.push(["Foto kegiatan",await adPack(af.files[i],1100)])}catch(e){}}af.value="";draw()};
+  var al=document.createElement("label");al.textContent="Tambah foto (bisa pilih beberapa)";d.appendChild(al);d.appendChild(af);
+  box.appendChild(d);
+}
+
+function showLogin(){
+  var v=$("v");
+  if(!ready()){v.innerHTML='<p class="err">Isi dulu apiKey dan databaseURL di file config.js (lihat PANDUAN.md).</p>';return}
+  v.innerHTML='<label>Email</label><input type="email" id="em" autocomplete="username"><label>Kata sandi</label><input type="password" id="pw" autocomplete="current-password"><p><button class="ok" id="go">Masuk</button> <span class="err" id="er"></span></p>';
+  $("go").onclick=async function(){
+    $("er").textContent="";
+    try{await login($("em").value.trim(),$("pw").value);
+      var r=await fetch(CFG.databaseURL.replace(/\/$/,"")+"/profil.json");applyRemote(S,r.ok?await r.json():null);showEditor()}
+    catch(e){$("er").textContent=e.message}};
+}
+function showEditor(){
+  var v=$("v");v.innerHTML="";
+  adGroup(v,"RA Mambaul Ulum",S.DATA.ra,"DATA.ra");adGroup(v,"MI Mambaul Ulum",S.DATA.mi,"DATA.mi");
+  var u=document.createElement("details"),sm=document.createElement("summary");sm.textContent="Umum (kontak dan guru)";u.appendChild(sm);
+  Object.keys(S.KONTAK).forEach(function(k){adField(u,"KONTAK."+k,LBL[k],S.KONTAK[k])});
+  adField(u,"STRUKTUR",LBL.STRUKTUR,S.STRUKTUR);v.appendChild(u);adPhotos(v);
+  var bar=document.createElement("div");bar.className="adm-bar";
+  var ok=document.createElement("button");ok.className="ok";ok.textContent="Simpan dan terbitkan";
+  var msg=document.createElement("span");bar.appendChild(ok);bar.appendChild(msg);v.appendChild(bar);
+  ok.onclick=async function(){
+    v.querySelectorAll("textarea[data-path]").forEach(function(x){
+      var t=x.dataset.t,val=x.value;
+      if(t!=="s"){val=val.split("\n").map(function(r){return r.trim()}).filter(Boolean);
+        if(t==="p")val=val.map(function(r){var q=r.split("|").map(function(z){return z.trim()});return [q[0],q.slice(1).join(" | ")]})}
+      var ps=x.dataset.path.split("."),o=S;for(var i=0;i<ps.length-1;i++)o=o[ps[i]];o[ps[ps.length-1]]=val});
+    ok.disabled=true;msg.className="";msg.textContent="Menyimpan...";
+    try{
+      var t=await fresh();
+      var r=await fetch(CFG.databaseURL.replace(/\/$/,"")+"/profil.json?auth="+encodeURIComponent(t),{method:"PUT",body:JSON.stringify({data:{DATA:S.DATA,KONTAK:S.KONTAK,STRUKTUR:S.STRUKTUR},foto:{hero:H,galeri:G}})});
+      if(r.status===401||r.status===403)throw new Error("Akun ini belum terdaftar sebagai admin (lihat PANDUAN.md langkah 3)");
+      if(!r.ok)throw new Error("Gagal menyimpan (kode "+r.status+")");
+      msg.textContent="Tersimpan. Buka halaman utama untuk melihat hasilnya."
+    }catch(e){msg.className="err";msg.textContent=e.message}
+    ok.disabled=false};
+}
+showLogin();
+</script></body></html>

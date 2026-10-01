@@ -1,0 +1,10 @@
+{
+  "profil": {
+    ".read": true,
+    ".write": "auth != null && root.child('profil_admin').child(auth.uid).val() === true"
+  },
+  "profil_admin": {
+    ".read": false,
+    ".write": false
+  }
+}
