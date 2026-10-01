@@ -58,6 +58,8 @@ footer{padding:30px 0 40px;color:var(--muted);font-size:14px}
 .nav a{color:var(--ink);text-decoration:none;font-weight:700;font-size:15px;padding:8px 14px;border-radius:999px}
 .nav a:hover{background:var(--soft)}
 .sub{font-size:20px;margin:22px 0 8px;color:var(--main)}
+.sam{display:flex;gap:22px;align-items:center}.sam img{width:140px;height:175px;object-fit:cover;border-radius:var(--r);flex:none}
+@media (max-width:700px){.sam{flex-direction:column;align-items:flex-start}}
 .sam b{display:block;margin-top:12px;color:var(--main)}
 .grid .off{opacity:.6}
 .grid a.card{display:block;color:inherit;text-decoration:none;background:var(--soft)}
@@ -102,7 +104,7 @@ footer{padding:30px 0 40px;color:var(--muted);font-size:14px}
 <nav class="nav" aria-label="Menu"><div class="wrap"><a href="#sec-profil">Profil</a><a href="#sec-program">Program</a><a href="#sec-guru">Guru</a><a href="#sec-akademik">Prestasi</a><a href="#sec-info">Informasi</a><a href="#sec-layanan">Layanan</a><a href="#sec-galeri">Galeri</a><a href="#kontak">Kontak</a></div></nav>
 <main class="wrap" id="isi" aria-live="polite">
   <div class="stats" id="stats"></div>
-  <section><div class="card tint sam"><h2>Sambutan kepala madrasah</h2><p id="sambutan"></p><b id="kepala"></b></div></section>
+  <section><div class="card tint sam"><img id="foto-kepala" alt="Foto kepala madrasah"><div><h2>Sambutan kepala madrasah</h2><p id="sambutan"></p><b id="kepala"></b></div></div></section>
   <section id="sec-profil"><h2>Tentang kami</h2><p class="about" id="tentang"></p>
     <h3 class="sub">Sejarah singkat</h3><p class="about" id="sejarah"></p></section>
   <section><h2>Visi dan misi</h2><div class="two">
@@ -129,10 +131,10 @@ footer{padding:30px 0 40px;color:var(--muted);font-size:14px}
     <a id="peta" class="btn" target="_blank" rel="noopener">Lihat lokasi di Google Maps</a></p>
   </div>
 </main>
-<footer class="wrap">© Yayasan Pendidikan Islam Sirojul Ulum, Madrasah Mambaul Ulum. Semua hak dilindungi. <a href="admin.html" style="color:inherit;opacity:.7;margin-left:8px">Admin</a></footer>
+<footer class="wrap">© Yayasan Pendidikan Islam Sirojul Ulum, Madrasah Mambaul Ulum. Semua hak dilindungi. <span id="upd" style="margin-left:8px;opacity:.7"></span> <a href="admin.html" style="color:inherit;opacity:.7;margin-left:8px">Admin</a></footer>
 
 <script src="config.js"></script>
-<script src="defaults.js"></script>
+<script src="defaults.js?v=8"></script>
 <script>
 // Ubah isi di bawah ini agar sesuai data madrasah (alamat, nomor WA, jumlah siswa, dll).
 var S=JSON.parse(JSON.stringify(DEFAULTS)),DATA=S.DATA,KONTAK=S.KONTAK,STRUKTUR=S.STRUKTUR,GALERI=S.GALERI;
@@ -154,10 +156,12 @@ function tampil(j){
   el("sambutan").textContent=d.sambutan;el("kepala").textContent=d.kepala;el("sejarah").textContent=d.sejarah;
   el("ekskul").innerHTML=li(d.ekskul);el("prestasi").innerHTML=li(d.prestasi);el("info").innerHTML=li(d.info);el("agenda").innerHTML=li(d.agenda);
   el("ticker").textContent="Info: "+d.info[0];
-  el("struktur").innerHTML=STRUKTUR.map(function(x){return '<div class="card"><h3>'+esc(x[0])+'</h3><p>'+esc(x[1])+'</p></div>'}).join("");
+  el("sec-guru").style.display=d.struktur.length?"":"none";
+  el("struktur").innerHTML=d.struktur.map(function(x){return '<div class="card"><h3>'+esc(x[0])+'</h3><p>'+esc(x[1])+'</p></div>'}).join("");
   el("layanan").innerHTML='<a class="card" href="https://wa.me/'+KONTAK.wa+'?text='+encodeURIComponent("Halo, saya ingin mendaftar di "+d.judul)+'" target="_blank" rel="noopener"><h3>Pendaftaran online</h3><p>Daftar lewat WhatsApp admin.</p></a>'+
     ["E-learning","Kelulusan dan SKL online","Portal alumni"].map(function(x){return '<div class="card off"><h3>'+x+'</h3><p>Segera hadir.</p></div>'}).join("");
-  el("foto-hero").src=S.HERO[j];el("logo-img").src=S.LOGO;
+  el("foto-hero").src=S.HERO[j];el("logo-img").src=S.LOGO[j];
+  var fk=el("foto-kepala");if(S.KEPALA[j]){fk.src=S.KEPALA[j];fk.style.display=""}else{fk.removeAttribute("src");fk.style.display="none"}
   el("sec-galeri").style.display=GALERI[j].length?"":"none";
   el("gal").innerHTML=GALERI[j].map(function(x,i){return '<figure data-i="'+i+'"><img loading="lazy" alt="'+esc(x[0])+'" src="'+esc(x[1])+'"><figcaption>'+esc(x[0])+'</figcaption></figure>'}).join("");
   el("gal").querySelectorAll("figure").forEach(function(f){f.onclick=function(){var o=document.createElement("div");o.className="lb";o.setAttribute("data-adm","1");o.innerHTML='<img alt="">';o.firstChild.src=GALERI[j][f.dataset.i][1];o.onclick=function(){o.remove()};document.body.appendChild(o)}});
@@ -168,10 +172,15 @@ function tampil(j){
 document.querySelectorAll(".switch button").forEach(function(b){b.onclick=function(){tampil(b.dataset.j)}});
 tampil(location.hash==="#ra"?"ra":"mi");
 
-(function(){var C=window.CFG;if(!C||!C.databaseURL||C.databaseURL.indexOf("ISI")>=0)return;
-fetch(C.databaseURL.replace(/\/$/,"")+"/profil.json").then(function(r){return r.ok?r.json():null}).then(function(v){
-  if(!v)return;applyRemote(S,v);DATA=S.DATA;KONTAK=S.KONTAK;STRUKTUR=S.STRUKTUR;GALERI=S.GALERI;
-  tampil(document.documentElement.getAttribute("data-j")||"mi")}).catch(function(){})})();
+(function(){var C=window.CFG,cek=/[?&]cek/.test(location.search);
+function lap(t){if(cek)el("upd").textContent=t}
+if(!C||!C.databaseURL||C.databaseURL.indexOf("ISI")>=0){lap("config.js belum diisi");return}
+fetch(C.databaseURL.replace(/\/$/,"")+"/profil.json",{cache:"no-store"}).then(function(r){if(!r.ok)throw new Error("HTTP "+r.status);return r.json()}).then(function(v){
+  if(!v){lap("Database kosong, memakai isi bawaan");return}
+  applyRemote(S,v);DATA=S.DATA;KONTAK=S.KONTAK;GALERI=S.GALERI;
+  tampil(document.documentElement.getAttribute("data-j")||"mi");
+  var t=v.meta&&v.meta.t;if(t)el("upd").textContent="Diperbarui: "+new Date(t).toLocaleString("id-ID");else lap("Data dimuat")
+}).catch(function(e){lap("Gagal: "+e.message)})})();
 </script>
 </body>
 </html>
